@@ -1,0 +1,58 @@
+# Schema configuration for CSV validation
+# Define your schema as a mapping: column name -> rules
+schema:
+  Year:
+    type: int
+    required: true
+    max_length: null
+  Industry_aggregation_NZSIOC:
+    type: str
+    required: false
+    max_length: 50
+  Industry_code_NZSIOC:
+    type: str
+    required: false
+    max_length: 10
+  Industry_name_NZSIOC:
+    type: str
+    required: false
+    max_length: 255
+  Units:
+    type: str
+    required: false
+    max_length: 50
+  Variable_code:
+    type: str
+    required: false
+    max_length: 10
+  Variable_name:
+    type: str
+    required: false
+    max_length: 100
+  Variable_category:
+    type: str
+    required: false
+    max_length: 100
+  Value:
+    type: float
+    required: false
+    max_length: null
+  Industry_code_ANZSIC06:
+    type: str
+    required: false
+    max_length: 255
+
+unique_fields:
+  - Year
+  - Industry_code_NZSIOC
+  - Variable_code
+
+table_name: etl.enterprise_survey
+
+# Database configuration
+db_config:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: admin
+  dbname: postgres

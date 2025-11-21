@@ -1,0 +1,31 @@
+{
+  "username": [
+    {"by": "id", "value": "username"},
+    {"by": "name", "value": "username"},
+    {"by": "css", "value": "input[type=\"email\"]"}
+  ],
+  "password": [
+    {"by": "id", "value": "password"},
+    {"by": "name", "value": "password"}
+  ],
+  "submit": [
+    {"by": "css", "value": "button[type=\"submit\"]"}
+  ],
+  "home": [
+    {"by": "link_text", "value": "Home"},
+    {"by": "css", "value": "a.home"}
+  ],
+  "practice": [
+    {"by": "link_text", "value": "Practice"},
+    {"by": "css", "value": "a.practice"}
+  ]
+  ,
+  "blog": [
+    {"by": "link_text", "value": "Blog"},
+    {"by": "css", "value": "a.blog"}
+  ],
+  "contact": [
+    {"by": "link_text", "value": "Contact"},
+    {"by": "css", "value": "a.contact"}
+  ]
+}

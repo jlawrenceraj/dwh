@@ -1,0 +1,9 @@
+{
+  "url": "http://localhost:8000/login",
+  "user": "user@example.com",
+  "password": "password",
+  "expect_url_contains": "/dashboard",
+  "headless": true,
+  "screenshot_dir": "data/screenshots",
+  "selectors_file": "selectors.example.json"
+}
