@@ -1,0 +1,1 @@
+python etl.py --config src\config\schema_config.yml
