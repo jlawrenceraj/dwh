@@ -56,3 +56,17 @@ db_config:
   user: postgres
   password: admin
   dbname: postgres
+
+# Email configuration for sending error reports
+email:
+  enabled: false          # set true to enable sending error files automatically
+  from: 'etl@example.com'
+  to:
+    - 'dba@example.com'
+  smtp:
+    host: 'localhost'
+    port: 25
+    username: 'smtp_user'
+    password: 'smtp_password'
+    use_tls: false
+    use_ssl: false

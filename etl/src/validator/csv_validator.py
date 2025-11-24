@@ -1,6 +1,6 @@
 
 import csv
-from src.config.schema_config import SCHEMA, UNIQUE_FIELDS
+
 
 def validate_row(row, schema):
     errors = []
@@ -27,7 +27,19 @@ def validate_row(row, schema):
     return validated, errors
 
 
-def validate_csv(file_path, schema=SCHEMA, unique_fields=UNIQUE_FIELDS):
+def validate_csv(file_path, schema=None, unique_fields=None):
+    """
+    Validate CSV rows against provided schema and unique fields.
+    If schema or unique_fields are None, load defaults from config.
+    """
+    if schema is None or unique_fields is None:
+        from src.config.schema_config import load_config
+        cfg = load_config()
+        if schema is None:
+            schema = cfg['schema']
+        if unique_fields is None:
+            unique_fields = cfg.get('unique_fields', [])
+
     valid_rows = []
     error_rows = []
     seen_uniques = set()

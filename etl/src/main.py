@@ -4,9 +4,6 @@ import os
 import sys
 import csv
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src.validator.csv_validator import validate_csv
-from src.loader.postgres_loader import load_to_postgres
-
 from src.config.schema_config import load_config
 
 
@@ -48,10 +45,26 @@ class ETLProcess:
             for idx in valid_indices:
                 writer.writerow(reader[idx])
 
+        # Send error file by email if configured
+        email_cfg = self.config.get('email')
+        if email_cfg and email_cfg.get('enabled'):
+            try:
+                from src.utils.email_utils import send_email
+                smtp_cfg = email_cfg.get('smtp', {})
+                from_addr = email_cfg.get('from')
+                to_addrs = email_cfg.get('to') or []
+                subject = email_cfg.get('subject') or f"ETL error report: {os.path.basename(error_file)}"
+                body = email_cfg.get('body') or f"Attached are the invalid rows extracted from {os.path.basename(self.csv_file)}."
+                send_email(smtp_cfg, from_addr, to_addrs, subject, body, attachments=[error_file])
+                print('Error file emailed to:', to_addrs)
+            except Exception as e:
+                print('Failed to send error email:', e)
+
     def load(self):
         from src.loader.postgres_loader import load_to_postgres
+        table = self.config.get('table_name') or self.config.get('table')
         if self.valid_rows:
-            load_to_postgres(self.valid_rows, self.db_config)
+            load_to_postgres(self.valid_rows, self.db_config, table)
             print('Data loaded to PostgreSQL.')
         else:
             print('No valid rows to load.')
