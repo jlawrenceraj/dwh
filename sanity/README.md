@@ -26,6 +26,8 @@ Environment variables
 - `TEST_PASS`: login password (default: `password`).
 - `TEST_EXPECT_URL_CONTAINS`: optional string expected to be in the post-login URL (used for simple success check).
 
+- `BROWSER`: optional browser choice; supported values: `chrome` (default) or `edge` (or `msedge`). Can also be set in `CONFIG_FILE` under `browser`.
+
 External configuration files
 
 - `CONFIG_FILE`: optional path to a JSON file containing top-level configuration. Supported keys: `url`, `user`, `password`, `expect_url_contains`, `headless`, `screenshot_dir`, `selectors_file`, `selectors` (inline selectors object).

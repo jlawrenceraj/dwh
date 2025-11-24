@@ -1,14 +1,20 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.edge.service import Service as EdgeService
+from selenium.webdriver.edge.options import Options as EdgeOptions
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
 import os
 import time
 import pytest
 import json
 from typing import List, Tuple, Optional, Dict, Any
 from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
+import requests
 from selenium.webdriver.support.ui import WebDriverWait
+from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
 
 SCREENSHOT_DIR = os.path.join(os.path.dirname(__file__), '..', 'data', 'screenshots')
 os.makedirs(SCREENSHOT_DIR, exist_ok=True)
@@ -81,6 +87,7 @@ class Config:
         self.user = env.get('TEST_USER', 'user@example.com')
         self.password = env.get('TEST_PASS', 'password')
         self.expect_url_contains = env.get('TEST_EXPECT_URL_CONTAINS', '')
+        self.browser = env.get('BROWSER', 'chrome')
         self.headless = env.get('HEADLESS', 'true').lower() not in ('0', 'false', 'no')
         self.screenshot_dir = env.get('SCREENSHOT_DIR', SCREENSHOT_DIR)
         self.selectors_file = env.get('SELECTORS_FILE')
@@ -157,13 +164,27 @@ class SeleniumHelper:
         self.driver = self._create_driver()
 
     def _create_driver(self):
+        browser = getattr(self.config, 'browser', os.environ.get('BROWSER', 'chrome')).lower()
+        if browser in ('edge', 'msedge'):
+            options = EdgeOptions()
+            if self.config.headless:
+                # Edge uses same headless arg
+                options.add_argument('--headless=new')
+            options.add_argument('--no-sandbox')
+            options.add_argument('--disable-dev-shm-usage')
+            options.add_argument(f"--window-size=1280,1024")
+            service = EdgeService(EdgeChromiumDriverManager().install())
+            drv = webdriver.Edge(service=service, options=options)
+            return drv
+
+        # default: chrome
         options = webdriver.ChromeOptions()
         if self.config.headless:
             options.add_argument('--headless=new')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument(f"--window-size=1280,1024")
-        service = Service(ChromeDriverManager().install())
+        service = ChromeService(ChromeDriverManager().install())
         drv = webdriver.Chrome(service=service, options=options)
         return drv
 
@@ -242,6 +263,17 @@ class ApplicationTest:
         self.config = config
 
     def open(self):
+        # quick reachability check to fail-fast and skip when the app server isn't running
+        try:
+            resp = urlopen(self.config.url, timeout=3)
+            try:
+                resp.close()
+            except Exception:
+                pass
+        except (URLError, HTTPError) as e:
+            reason = getattr(e, 'reason', e)
+            pytest.skip(f"Target URL not reachable: {self.config.url} ({reason})")
+
         self.h.driver.get(self.config.url)
         self.h.take_screenshot('page_loaded')
 
@@ -308,6 +340,12 @@ def driver():
 @pytest.fixture
 def app():
     cfg = Config.from_env()
+    # ensure target URL is reachable before creating browser
+    try:
+        resp = requests.get(cfg.url, timeout=3)
+        resp.raise_for_status()
+    except Exception as e:
+        pytest.skip(f"Target URL {cfg.url} unreachable: {e}")
     helper = SeleniumHelper(cfg)
     app = ApplicationTest(helper, cfg)
     yield app
